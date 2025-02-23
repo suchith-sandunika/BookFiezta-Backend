@@ -20,7 +20,7 @@ const sendOTP = (email, otp) => {
     const mailOptions = {
         from: app_email,
         to: email,
-        subject: 'OTP Verification',
+        subject: 'OTP Verification - BookFiezta',
         text: `Your OTP for email verification is ${otp}`
     };
 

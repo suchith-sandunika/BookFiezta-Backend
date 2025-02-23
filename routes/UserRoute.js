@@ -5,6 +5,7 @@ const User = require('../model/User');
 const upload = require('../controllers/FileUploading');
 const SessionLog = require('../model/SessionLog');
 const Book = require('../model/Book');
+const Purchase = require('../model/Purchase');
 const { generateRatingPoints } = require('../utils/PointSystem');
 
 // Route to send mails though contact us ...
@@ -260,7 +261,7 @@ router.patch('/user/cart/remove/book', async (req, res) => {
            { new: true }  // Return the updated document ...
        );
        if(!updatedCart) {
-           res.status(404).send('Error occured');
+           res.status(404).send('Error occurred');
        } else {
            res.status(200).json({message: 'Cart updated successfully', data: updatedCart});
        }
@@ -285,6 +286,44 @@ router.put('/user/update/dob/age', async (req, res) => {
         console.log(error.message);
         return res.status(500).send(error.message);
     }
-})
+});
+
+router.post('/user/create-order', async (req, res) => {
+   try {
+       const {items, userId} = req.body;
+       // find a user for the userId ...
+       const user = await User.findById(userId);
+       if(!user) {
+           return res.status(404).send('User Not Found. Invalid ID');
+       } else {
+           const newPurchase = new Purchase({
+               items: { details: items },
+               userId: userId
+           });
+           // Save to the database ...
+           const savedPurchase = await newPurchase.save();
+           res.status(201).json({ message: 'Purchase recorded successfully', data: savedPurchase });
+       }
+   } catch (error) {
+       console.log(error.message);
+       return res.status(500).send(error.message);
+   }
+});
+
+router.post('/user/complete-order', async (req, res) => {
+    try {
+        const { orderId, date } = req.body;
+        // Find the purchase related data ...
+        const purchase = await Purchase.findByIdAndUpdate({_id: orderId}, {paymentCompletedDate: date, status: 'Paid'});
+        if(!purchase) {
+            return res.status(404).send('Purchase Information Not Found. Invalid ID');
+        } else {
+            return res.status(200).send('Purchase Completed');
+        }
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).send(error.message);
+    }
+});
 
 module.exports = router;

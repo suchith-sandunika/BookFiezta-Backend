@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 require('dotenv').config();
 const path = require('path');
+
 const AuthRoute = require('./routes/AuthRoute');
 const BookRoute = require('./routes/BookRoute');
 const CommonRoute = require('./routes/CommonRoute');
@@ -12,6 +13,7 @@ const UserRoute = require('./routes/UserRoute');
 const SessionRoute = require('./routes/SessionRoute');
 const AdminRoute = require('./routes/AdminRoute');
 const OptionsRoute = require('./routes/OptionsRoute');
+const PaymentRoute = require('./routes/PaymentRoute');
 
 // Declare app ...
 const app = express();
@@ -22,7 +24,7 @@ const mongo_url = process.env.MONGODB_URL;
 
 // Establish the database connection ...
 mongoose.connect(mongo_url)
- .then(() => console.log('Connected to MongoDB'))
+ .then(() => console.log(`Connected to MongoDB Database on ${mongo_url}`))
  .catch((error) => console.error('Failed to connect to MongoDB', error));
 
 // Middleware setup ...
@@ -48,6 +50,7 @@ app.use('/api/', CommonRoute);
 app.use('/api/session/', SessionRoute);
 app.use('/api/admin/auth/', AdminRoute);
 app.use('/api/', OptionsRoute);
+app.use('/api/cart/', PaymentRoute);
 
 // Declare the app running state ...
 app.listen(port, () => {
