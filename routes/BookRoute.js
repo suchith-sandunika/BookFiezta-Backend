@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Book = require('../model/Book');
 const upload = require('../controllers/FileUploading');
+const authenticateToken = require('../middleware/authenticateToken');
 
 // Route to get all books ...
-router.get('/books', async (req, res) => {
+router.get('/books', authenticateToken, async (req, res) => {
     try {
         const books = await Book.find();
 
@@ -14,7 +15,7 @@ router.get('/books', async (req, res) => {
             res.status(200).json({message: "Books found", data: books});
         }
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 }); 
 
@@ -35,7 +36,7 @@ router.get('/books/latest', async (req, res) => {
             res.status(200).json({message: "Books found", data: books});
         }
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 }); 
 
@@ -50,7 +51,7 @@ router.get('/books/:id', async (req, res) => {
             res.status(200).json({message: "Book found", data: book});
         }
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 }); 
 
@@ -67,7 +68,7 @@ router.get('/books/name/:name', async (req, res) => {
             res.status(200).json({ message: "Book found", data: book });
         }
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 });
 
@@ -140,8 +141,8 @@ router.post('/books/add', upload.single('image'), async (req, res) => {
             res.status(201).json({ message: "Book added", data: book });
         }
     } catch (error) {
-        res.status(500).send(error.message);
         console.error(error.message);
+        return res.status(500).send(error.message);
     }
 });
 
@@ -177,9 +178,9 @@ router.put('/books/update/:name', upload.single('image'), async (req, res) => {
             console.log("Book not found");
         }
     } catch (error) {
-        res.status(500).send(error.message);
         console.log(error.message);
         console.log(error.status);
+        return res.status(500).send(error.message);
     }
 });
 
@@ -194,8 +195,8 @@ router.delete('/books/delete/:name', async (req, res) => {
             res.status(200).json({message: "Book deleted", data: deleteBook});
         }
     } catch (error) {
-        req.status(500).send(error.message);
         console.error(error.message);
+        return req.status(500).send(error.message);
     }
 });
 

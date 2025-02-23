@@ -30,7 +30,7 @@ router.post('/register', async (req, res) => {
             res.status(201).json({message: 'Before registration you must verify your email', data: newUser});
         }
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 }); 
 
@@ -78,7 +78,7 @@ router.post('/login', async (req, res) => {
             }
         }
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 });
 
@@ -94,7 +94,7 @@ router.post('/sendOTP', (req, res) => {
         res.cookie('otpCache', otpCache, { maxAge: 3000, httpOnly: true });
         res.status(200).json({message: "OTP sent successfully", otp: otp});
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 }); 
 
@@ -122,7 +122,7 @@ router.post('/verifyOTP', async (req, res) => {
             }
         }  
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 }); 
 
@@ -138,8 +138,8 @@ router.post('/emailCheck', async (req, res) => {
             return res.status(200).json({message: "Email is Verified Sucessfully", data: existingUser});
         }
     } catch (error) {
-        res.status(500).send(error.message);
         console.log(error);
+        return res.status(500).send(error.message);
     }
 });
 
@@ -153,7 +153,7 @@ router.post('/reset-password', async (req, res) => {
         const updateUser = await User.findOneAndUpdate({email: email, password: hashedPassword});
         return res.status(200).json({message: "Password Reset Successfully", data: updateUser});
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 });
 
@@ -173,8 +173,8 @@ router.post('/sendOTP/mobile', (req, res) => {
            })
            .catch(error => console.log(error));
    } catch (error) {
-       res.status(500).send(error.message);
        console.log(error.message);
+       return res.status(500).send(error.message);
    }
 });
 
@@ -202,8 +202,8 @@ router.post('/verifyOTP/mobile', async (req, res) => {
            }
        }
    } catch (error) {
-       res.status(500).send(error.message);
        console.log(error.message);
+       return res.status(500).send(error.message);
    }
 });
 
@@ -223,7 +223,7 @@ router.get('/logout', async (req, res) => {
             res.status(200).json({message: "Logout Successful", data: updateSessionData});
         }
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 });
 

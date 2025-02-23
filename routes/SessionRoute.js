@@ -8,8 +8,8 @@ router.get('/loggedUser', async (req, res) => {
         const lastRecord = await SessionLog.find().sort({createdAt: -1}).limit(1).lean();
         res.status(200).json({message: "Logged User", data: lastRecord});
     } catch (error) {
-        res.status(500).send(error.message);
         console.log(error);
+        return res.status(500).send(error.message);
     }
 });
 

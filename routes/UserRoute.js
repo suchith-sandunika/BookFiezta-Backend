@@ -13,9 +13,9 @@ router.post('/send-feedback', async (req, res) => {
         const { email, name, message } = req.body;
         // Email the admin using the provided email, name, and message...
         sendFeedback(email, name, message);
-        res.status(200).json({ message: 'Feedback sent successfully' });
+        return res.status(200).json({ message: 'Feedback sent successfully' });
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 }); 
 
@@ -24,12 +24,12 @@ router.get('/users', async (req, res) => {
     try {
         const users = await User.find();
         if(users.length == 0) {
-            res.status(404).send('No users found');
+            return res.status(404).send('No users found');
         } else {
-            res.status(200).json(users);
+            return res.status(200).json(users);
         }
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 }); 
 
@@ -38,12 +38,12 @@ router.get('/users/:id', async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
         if(!user) {
-            res.status(404).send('User not found');
+            return res.status(404).send('User not found');
         } else {
-            res.status(200).json({message: "User Found", data: user});
+            return res.status(200).json({message: "User Found", data: user});
         }
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 });
 
@@ -53,12 +53,12 @@ router.get('/users/searchByName/:name', async (req, res) => {
         // find the user datails related to the name ...
         const user = await User.findOne({name: req.params.name});
         if(!user) {
-            res.status(404).send('User not found');
+            return res.status(404).send('User not found');
         } else {
-            res.status(200).json({message: "User Found", data: user});
+            return res.status(200).json({message: "User Found", data: user});
         }
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 }); 
 
@@ -68,12 +68,12 @@ router.get('/users/searchByEmail/:email', async (req, res) => {
         // find the user datails related to the name ...
         const user = await User.findOne({email: req.params.email});
         if(!user) {
-            res.status(404).send('User not found');
+            return res.status(404).send('User not found');
         } else {
-            res.status(200).json({message: "User Found", data: user});
+            return res.status(200).json({message: "User Found", data: user});
         }
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 }); 
 
@@ -145,16 +145,16 @@ router.put('/user/profile/update/:name', upload.single('image'), async (req, res
                 // Update the session data to newUserName ...
                 // Update the session with the new user name ...
                 await SessionLog.updateOne({ _id: lastSession._id }, { $set: { email: userEmail } });
-                res.status(200).json({ message: "User data updated successfully", data: updatedUser });
+                return res.status(200).json({ message: "User data updated successfully", data: updatedUser });
             } else {
-                res.status(404).send('Error occurred while updating session data');
+                return res.status(404).send('Error occurred while updating session data');
             }
         } else {
-            res.status(404).send('Error occurred while updating user data');
+            return res.status(404).send('Error occurred while updating user data');
         }
     } catch (error) {
-        res.status(500).send(error.message);
         console.log(error.message);
+        return res.status(500).send(error.message);
     }
 });
 
@@ -164,9 +164,9 @@ router.delete('/user/profile/delete/:name', async (req, res) => {
         const userName = req.params.name;
         // delete the user ...
         const deletedUser = await User.findOneAndDelete({ name: userName });
-        res.status(200).json({ message: "User deleted successfully", data: deletedUser })
+        return res.status(200).json({ message: "User deleted successfully", data: deletedUser })
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 }); 
 
@@ -181,10 +181,10 @@ router.post('/user/book/addtocart', async (req, res) => {
         // Update the cart data ...
         userData.cart.push({ image: { path: bookData.image.path, name: bookData.image.name }, name: bookName, price: bookData.price, publishers: bookData.publishers });
         await userData.save();
-        res.status(200).json({message: 'Book added to cart successfully', data: userData});
+        return res.status(200).json({message: 'Book added to cart successfully', data: userData});
     } catch (error) {
-        res.status(500).send(error.message);
         console.log(error.message);
+        return res.status(500).send(error.message);
     }
 }); 
 
@@ -204,10 +204,10 @@ router.post('/user/book/rateBook', async (req, res) => {
         // Add the rated book to user data ...
         userData.ratedBooks.push({name: bookName, publishers: bookPublisher});
         await userData.save();
-        res.status(200).json({message: 'Book rated successfully', data: bookData});
+        return res.status(200).json({message: 'Book rated successfully', data: bookData});
     } catch (error) {
-        res.status(500).send(error.message);
         console.log(error.message);
+        return res.status(500).send(error.message);
     }
 }); 
 
@@ -221,10 +221,10 @@ router.post('/user/book/addreview', async (req, res) => {
         // Update the review data ...
         bookData.reviews.push({userName: userData.name, reviewBody: reviewBody });
         await bookData.save();
-        res.status(200).json({message: 'Review added successfully', data: bookData});
+        return res.status(200).json({message: 'Review added successfully', data: bookData});
     } catch (error) {
-        res.status(500).send(error.message);
         console.log(error.message);
+        return res.status(500).send(error.message);
     }
 });
 
@@ -235,17 +235,17 @@ router.get('/user/cart/:name', async (req, res) => {
        // get the relavant user details ...
        const user = await User.findOne({name: name}).select('_id cart');
        if(!user) {
-           res.status(404).send("User not found");
+           return res.status(404).send("User not found");
        } else {
            if(user.cart.length == 0) {
-               res.status(204).json({message: "User cart is empty"});
+               return res.status(204).json({message: "User cart is empty"});
            } else {
-               res.status(200).json({message: "User found", id: user._id, data: user.cart});
+               return res.status(200).json({message: "User found", id: user._id, data: user.cart});
            }
        }
    } catch (error) {
-       res.status(500).send(error.message);
        console.log(error.message);
+       return res.status(500).send(error.message);
    }
 });
 
@@ -265,8 +265,8 @@ router.patch('/user/cart/remove/book', async (req, res) => {
            res.status(200).json({message: 'Cart updated successfully', data: updatedCart});
        }
    } catch (error) {
-       res.status(500).send(error.message);
        console.log(error.message);
+       return res.status(500).send(error.message);
    }
 });
 
@@ -282,8 +282,8 @@ router.put('/user/update/dob/age', async (req, res) => {
             res.status(200).json({message: 'User Details Updated Successfully', data: user});
         }
     } catch (error) {
-        res.status(500).send(error.message);
         console.log(error.message);
+        return res.status(500).send(error.message);
     }
 })
 

@@ -17,10 +17,10 @@ router.post('/register', async (req, res) => {
             const password = await bcrypt.hash(plainTextPassword, 10);
             const adminUser = await Admin.create({ name, email, password });
             console.log(adminUser);
-            res.status(201).json({message: 'Registration Successfull', data: adminUser});
+            return res.status(201).json({message: 'Registration Successfull', data: adminUser});
         }
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 }); 
 
@@ -59,7 +59,7 @@ router.post('/login', async (req, res) => {
             }
         }
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 }); 
 
@@ -73,7 +73,7 @@ router.post('/reset-password', async (req, res) => {
         const updateAdmin = await Admin.findOneAndUpdate({email: email, password: hashedPassword});
         return res.status(200).json({message: "Password Reset Successfully", data: updateAdmin});
     } catch (error) {
-        res.status(500).send(error.message);
+        return res.status(500).send(error.message);
     }
 });
 
