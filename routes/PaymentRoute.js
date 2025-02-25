@@ -7,9 +7,10 @@ const router = express.Router();
 // Route to initiate the payment
 router.post('/pay', async (req, res) => {
     console.log('Request Body:', req.body);
-    const { items } = req.body;
+    const { items, orderId } = req.body;
+    console.log(req.body);
     try {
-        const approvalUrl = await createOrder(items);
+        const approvalUrl = await createOrder(items, orderId);
         console.log(approvalUrl);
         res.status(200).json({ url: approvalUrl });
     } catch (error) {
@@ -27,10 +28,9 @@ router.post('/pay', async (req, res) => {
 
 // Route to handle payment completion ...
 router.get('/complete-payment', async (req, res) => {
-    // const { token } = req.query;
-    console.log('Token : ', req.query.token);
+    const { token } = req.body;
     try {
-        const paymentDetails = await capturePayment(req.query.token);
+        const paymentDetails = await capturePayment(token);
         res.json({ status: 'success', details: paymentDetails });
     } catch (error) {
         console.error('Error capturing payment:', error.message);

@@ -17,7 +17,7 @@ const generateAccessToken = async () => {
     return response.data.access_token;
 };
 
-const createOrder = async (items) => {
+const createOrder = async (items, orderId) => {
     const accessToken = await generateAccessToken();
 
     // Format items into the correct PayPal API structure
@@ -57,8 +57,8 @@ const createOrder = async (items) => {
                 },
             ],
             application_context: {
-                return_url: process.env.REDIRECT_BASE_URL + '/home',
-                cancel_url: process.env.REDIRECT_BASE_URL + '/home',
+                return_url: process.env.REDIRECT_BASE_URL + `/home?status=paid?orderId=${orderId}`,
+                cancel_url: process.env.REDIRECT_BASE_URL + `/home?status=unpaid?orderId=${orderId}`,
                 shipping_preference: 'NO_SHIPPING',
                 user_action: 'PAY_NOW',
                 brand_name: 'home',
@@ -134,8 +134,12 @@ const capturePayment = async (orderId) => {
             'Authorization': 'Bearer' + accessToken,
         },
     });
+
+    // Check if the payment was completed successfully
+    //const paymentStatus = response.data.status === "COMPLETED" ? "paid" : "unpaid";
+
     console.log(response);
-    return response.data;
+    return { data: response.data };
 };
 
 module.exports = { createOrder, capturePayment };

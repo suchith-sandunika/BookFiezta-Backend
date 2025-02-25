@@ -38,6 +38,16 @@ const schema = new mongoose.Schema({
         type: String,
         default: 'Unpaid',
         required: false
+    },
+    purchaseToken: {
+        type: String,
+        default: null,
+        required: false
+    },
+    purchasedBy: {
+        type: String,
+        default: null,
+        required: false
     }
 }, {collection: 'purchases'});
 

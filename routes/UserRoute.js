@@ -233,7 +233,7 @@ router.post('/user/book/addreview', async (req, res) => {
 router.get('/user/cart/:name', async (req, res) => {
    try {
        const name = req.params.name;
-       // get the relavant user details ...
+       // get the relevant user details ...
        const user = await User.findOne({name: name}).select('_id cart');
        if(!user) {
            return res.status(404).send("User not found");
@@ -312,9 +312,9 @@ router.post('/user/create-order', async (req, res) => {
 
 router.post('/user/complete-order', async (req, res) => {
     try {
-        const { orderId, date } = req.body;
+        const { orderId, date, token } = req.body;
         // Find the purchase related data ...
-        const purchase = await Purchase.findByIdAndUpdate({_id: orderId}, {paymentCompletedDate: date, status: 'Paid'});
+        const purchase = await Purchase.findByIdAndUpdate({_id: orderId}, {paymentCompletedDate: date, purchaseToken: token, purchasedBy: 'Paypal'});
         if(!purchase) {
             return res.status(404).send('Purchase Information Not Found. Invalid ID');
         } else {
@@ -324,6 +324,47 @@ router.post('/user/complete-order', async (req, res) => {
         console.log(error.message);
         return res.status(500).send(error.message);
     }
+});
+
+router.post('/user/update-purchased-item', async (req, res) => {
+   try {
+       const { orderId } = req.body;
+       // Get the relevant purchase data ...
+       const purchase = await Purchase.findOneAndUpdate({ _id: orderId, status: 'Unpaid' }, {status: 'Paid'});
+       if(!purchase) {
+           return res.status(404).send('Order Not Found');
+       } else {
+           const userId = purchase.userId;
+           const items = purchase.items.details;
+
+           const user = await User.findById(userId);
+
+           for (const item of items) {
+               const book = await Book.findOne({name: item.name});
+               if(book) {
+                   // Remove book details from the cart ...
+                   const removeBookFromCart = await User.findOneAndUpdate(
+                       { _id: userId },  // Find the user by name ...
+                       { $pull: { cart: { _id: item.id } } },  // Remove item from cart array ...
+                       { new: true }  // Return the updated document ...
+                   );
+                   // Update the Book Sells ...
+                   const updateBookSales = await Book.findOneAndUpdate(
+                       { name: item.name },
+                       { $inc: { sells: 1 } }, // Increment sells by 1 ...
+                       { new: true } // Return the updated document ...
+                   )
+                   // Updated Purchased Books ...
+                   user.purchasedBooks.push({ image: { path: book.image.path, name: book.image.name }, name: book.name, price: book.price, publishers: book.publishers });
+                   await user.save();
+               }
+           }
+           return res.status(200).send('Purchase Process Completed');
+       }
+   } catch (error) {
+       console.log(error.message);
+       return res.status(500).send(error.message);
+   }
 });
 
 module.exports = router;
