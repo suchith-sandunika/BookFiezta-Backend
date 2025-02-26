@@ -99,8 +99,6 @@ router.put('/user/profile/update/:name', upload.single('image'), async (req, res
     try {
         const oldUserName = req.params.name;
         const {newUserName, userEmail} = req.body;
-        console.log(oldUserName);
-        console.log(req.body);
         console.log(req.file);
         // Declare the image path ...
         const imagePath = req.file ? req.file.path : null;
@@ -178,7 +176,7 @@ router.post('/user/book/addtocart', async (req, res) => {
         // Fetch the user data ...
         const userData = await User.findOne({ email: userEmail });
         const bookData = await Book.findOne({ name: bookName });
-
+        console.log(bookData);
         // Update the cart data ...
         userData.cart.push({ image: { path: bookData.image.path, name: bookData.image.name }, name: bookName, price: bookData.price, publishers: bookData.publishers });
         await userData.save();

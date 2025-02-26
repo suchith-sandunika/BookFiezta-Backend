@@ -5,7 +5,7 @@ const upload = require('../controllers/FileUploading');
 const authenticateToken = require('../middleware/authenticateToken');
 
 // Route to get all books ...
-router.get('/books', authenticateToken, async (req, res) => {
+router.get('/books', async (req, res) => {
     try {
         const books = await Book.find();
 
@@ -58,7 +58,6 @@ router.get('/books/:id', async (req, res) => {
 // Route to get a book by its name ...
 router.get('/books/name/:name', async (req, res) => {
     try {
-        console.log(req.params.name);
         // Check whether the book exists ...
         const book = await Book.findOne({ name: req.params.name });
 
@@ -151,7 +150,6 @@ router.put('/books/update/:name', upload.single('image'), async (req, res) => {
     try {
         console.log(req.file);
         const { name, auther, publishers, publishedYear, description, price, genre } = req.body;
-        console.log(req.body);
         // Declare the image path and name...
         const imagePath = req.file ? req.file.path : null;
         console.log(imagePath);

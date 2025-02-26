@@ -16,7 +16,6 @@ router.post('/register', async (req, res) => {
         } else {
             const password = await bcrypt.hash(plainTextPassword, 10);
             const adminUser = await Admin.create({ name, email, password });
-            console.log(adminUser);
             return res.status(201).json({message: 'Registration Successfull', data: adminUser});
         }
     } catch (error) {

@@ -26,7 +26,6 @@ router.post('/register', async (req, res) => {
         } else {
             const password = await bcrypt.hash(plainTextPassword, 10);
             const newUser = await User.create({ name, password });
-            console.log(newUser);
             res.status(201).json({message: 'Before registration you must verify your email', data: newUser});
         }
     } catch (error) {
@@ -64,7 +63,6 @@ router.post('/login', async (req, res) => {
 
                 // create Session for logged user ...
                 const sessionData = await SessionLog.create({userId: existingUser._id, email: existingUser.email, token: token, expiringAt: expiringAt});
-                console.log(sessionData);
 
                 // Set the cookie with JWT token for authenticated user ...
                 res.cookie('token', token, {
@@ -102,8 +100,6 @@ router.post('/sendOTP', (req, res) => {
 router.post('/verifyOTP', async (req, res) => {
     try {
         const {otp, userName, userEmail} = req.body;
-        
-        console.log(otpCache.hasOwnProperty(userEmail));
         // Check if email exists in the cache ...
         if(!otpCache.hasOwnProperty(userEmail)) {
             return res.status(404).send("Email not found");
@@ -182,8 +178,6 @@ router.post('/sendOTP/mobile', (req, res) => {
 router.post('/verifyOTP/mobile', async (req, res) => {
    try {
        const {otp, userName, mobileNumber} = req.body;
-
-       console.log(otpMobileCache.hasOwnProperty(mobileNumber));
        // Check if email exists in the cache ...
        if(!otpMobileCache.hasOwnProperty(mobileNumber)) {
            return res.status(404).send("Mobile Number not found");
