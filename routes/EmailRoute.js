@@ -50,7 +50,7 @@ router.post('/user/send/payment-receipt', async (req, res) => {
                 items.forEach(item => {
                     // const paymentRelatedStr = `${item.name} - USD ${item.priceValue}`;
                     totalPricePurchased = totalPricePurchased + item.priceValue;
-                    message = message + ` ${item.bookName} from ${item.publishers} - USD ${item.priceValue}`;
+                    message = message + `         ${item.bookName} from ${item.publishers} - USD ${item.priceValue}`;
                     // purchasedItems.push(paymentRelatedStr);
                 });
                 // Call the function to send email ...
