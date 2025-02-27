@@ -58,7 +58,7 @@ router.post('/login', async (req, res) => {
 
                 // Set the time to expire the token ...
                 const expiringAt = new Date();
-                expiringAt.setDate(expiringAt.getDate() + 1);
+                expiringAt.setDate(expiringAt.getHours() + 2);
                 console.log("Generated Token Expiring At:", expiringAt);
 
                 // create Session for logged user ...
@@ -69,10 +69,11 @@ router.post('/login', async (req, res) => {
                     httpOnly: true,
                     sameSite: 'none',
                     secure: true,
-                    maxAge: 1000 * 60 * 60 * 24 // 1 day
+                    // maxAge: 1000 * 60 * 60 * 24 // 1 day
+                    maxAge: 100 * 60 * 60, // 1 hour ...
                 }); 
 
-                res.status(200).json({message: 'Login Successful', token: token, data: existingUser});
+                res.status(200).json({message: 'Login Successful', token: token, data: existingUser, session: sessionData});
             }
         }
     } catch (error) {

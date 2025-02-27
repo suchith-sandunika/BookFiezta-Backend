@@ -6,11 +6,9 @@ const router = express.Router();
 
 // Route to initiate the payment
 router.post('/pay', async (req, res) => {
-    console.log('Request Body:', req.body);
-    const { items, orderId } = req.body;
-    console.log(req.body);
+    const { items, orderId, url } = req.body;
     try {
-        const approvalUrl = await createOrder(items, orderId);
+        const approvalUrl = await createOrder(items, orderId, url);
         console.log(approvalUrl);
         res.status(200).json({ url: approvalUrl });
     } catch (error) {

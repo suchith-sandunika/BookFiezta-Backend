@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { frontendURL } = require('../routes/CaptureFrontendURLRoute');
 require('dotenv').config();
 
 // Function to generate PayPal access token
@@ -17,57 +18,63 @@ const generateAccessToken = async () => {
     return response.data.access_token;
 };
 
-const createOrder = async (items, orderId) => {
+const createOrder = async (items, orderId, url) => {
     const accessToken = await generateAccessToken();
+    const priceUnitResult = items.every(item => item.priceUnit === items[0].priceUnit);
+    console.log(priceUnitResult);
 
-    // Format items into the correct PayPal API structure
-    const purchaseItems = items.map(item => ({
-        name: item.name,
-        unit_amount: {
-            currency_code: 'USD',
-            value: item.priceValue, // Ensure it's a valid decimal
-        },
-        quantity: 1,
-    }));
+    if(priceUnitResult == true) {
+        const priceUnit = items[0].priceUnit;
+        // Format items into the correct PayPal API structure
+        const purchaseItems = items.map(item => ({
+            name: item.bookName,
+            unit_amount: {
+                currency_code: priceUnit,
+                value: item.priceValue, // Ensure it's a valid decimal
+            },
+            quantity: 1,
+        }));
 
-    // Calculate total price
-    const totalPrice = items.reduce((sum, item) => sum + item.priceValue, 0).toFixed(2);
-    const response = await axios({
-        url: process.env.PAYPAL_BASE_URL + '/v2/checkout/orders',
-        method: 'post',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`, // Ensure space after 'Bearer'
-        },
-        data: {
-            intent: 'CAPTURE',
-            purchase_units: [
-                {
-                    items: purchaseItems,
-                    amount: {
-                        currency_code: 'USD',
-                        value: totalPrice,
-                        breakdown: {
-                            item_total: {
-                                currency_code: 'USD',
-                                value: totalPrice,
+        // Calculate total price
+        const totalPrice = items.reduce((sum, item) => sum + item.priceValue, 0).toFixed(2);
+        const response = await axios({
+            url: process.env.PAYPAL_BASE_URL + '/v2/checkout/orders',
+            method: 'post',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`, // Ensure space after 'Bearer'
+            },
+            data: {
+                intent: 'CAPTURE',
+                purchase_units: [
+                    {
+                        items: purchaseItems,
+                        amount: {currency_code: priceUnit,
+                            value: totalPrice,
+                            breakdown: {
+                                item_total: {
+                                    currency_code: priceUnit,
+                                    value: totalPrice,
+                                },
                             },
                         },
                     },
+                ],
+                application_context: {
+                    return_url: url + `/home?status=paid?orderId=${orderId}`,
+                    cancel_url: url + `/home?status=unpaid?orderId=${orderId}`,
+                    shipping_preference: 'NO_SHIPPING',
+                    user_action: 'PAY_NOW',
+                    brand_name: 'home',
                 },
-            ],
-            application_context: {
-                return_url: process.env.REDIRECT_BASE_URL + `/home?status=paid?orderId=${orderId}`,
-                cancel_url: process.env.REDIRECT_BASE_URL + `/home?status=unpaid?orderId=${orderId}`,
-                shipping_preference: 'NO_SHIPPING',
-                user_action: 'PAY_NOW',
-                brand_name: 'home',
             },
-        },
-    });
-    // Return the approval URL to the client ...
-    const approvalUrl = response.data.links.find((link) => link.rel === 'approve').href;
-    return approvalUrl;
+        });
+        // Return the approval URL to the client ...
+        const approvalUrl = response.data.links.find((link) => link.rel === 'approve').href;
+        return approvalUrl;
+    } else {
+        return 'There is an issue with price unit.. Please consider this';
+    }
 };
 
 

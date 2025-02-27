@@ -5,16 +5,24 @@ const schema = new mongoose.Schema({
     items: {
         details: [
             {
-                id: {
+                bookId: {
                     type: mongoose.Schema.Types.ObjectId,
                     required: true
                 },
-                name: {
+                bookName: {
+                    type: String,
+                    required: true
+                },
+                publishers: {
                     type: String,
                     required: true
                 },
                 priceValue: {
                     type: Number,
+                    required: true
+                },
+                priceUnit: {
+                    type: String,
                     required: true
                 }
             }

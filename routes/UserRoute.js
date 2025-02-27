@@ -1,25 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { sendFeedback } = require('../controllers/FeedBackSending');
 const User = require('../model/User');
 const upload = require('../controllers/FileUploading');
 const SessionLog = require('../model/SessionLog');
 const Book = require('../model/Book');
 const Purchase = require('../model/Purchase');
 const { generateRatingPoints } = require('../utils/PointSystem');
-const { sendPaymentReceiptEmail } = require('../controllers/PaymentReceiptSending');
-
-// Route to send mails though contact us ...
-router.post('/send-feedback', async (req, res) => {
-    try {
-        const { email, name, message } = req.body;
-        // Email the admin using the provided email, name, and message...
-        sendFeedback(email, name, message);
-        return res.status(200).send('Feedback sent successfully');
-    } catch (error) {
-        return res.status(500).send(error.message);
-    }
-}); 
 
 // Get All the users in the system ...
 router.get('/users', async (req, res) => {
@@ -357,40 +343,6 @@ router.post('/user/update-purchased-item', async (req, res) => {
                }
            }
            return res.status(200).send('Purchase Process Completed');
-       }
-   } catch (error) {
-       console.log(error.message);
-       return res.status(500).send(error.message);
-   }
-});
-
-router.post('/user/send/payment-receipt', async (req, res) => {
-   try {
-       const { email, orderId } = req.body;
-       // let purchasedItems = [];
-       let message = `related to orderId = ${orderId}`;
-       let totalPricePurchased = 0;
-       // get the relevant purchase details ...
-       const purchase = await Purchase.findById(orderId);
-       if(!purchase) {
-           return res.status(404).send('Purchase Not Found');
-       } else {
-           // check the email validity ...
-           const validUser = await User.findById(purchase.userId)
-           if(validUser.email != email) {
-               res.status(400).send('Email validation failed');
-           } else {
-               const items = purchase.items.details;
-               items.forEach(item => {
-                   // const paymentRelatedStr = `${item.name} - USD ${item.priceValue}`;
-                   totalPricePurchased = totalPricePurchased + item.priceValue;
-                   message = message + ` ${item.name} - USD ${item.priceValue}`;
-                   // purchasedItems.push(paymentRelatedStr);
-               });
-               // Call the function to send email ...
-               sendPaymentReceiptEmail(email, message, totalPricePurchased, orderId, purchase.purchasedBy);
-               res.status(200).send('Payment Receipt Email Sent to user Successfully');
-           }
        }
    } catch (error) {
        console.log(error.message);

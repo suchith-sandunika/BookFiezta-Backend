@@ -9,7 +9,7 @@ const sendEMail = (email, name, message) => {
     const mailOptions = {
         from: email,
         to: app_email,
-        subject: 'Via BookFiezta - Contact Us',
+        subject: 'Via BookFiezta - Contact Us Form',
         text: `From: ${name} \n Message: ${message}`
     };
 
