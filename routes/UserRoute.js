@@ -7,6 +7,7 @@ const SessionLog = require('../model/SessionLog');
 const Book = require('../model/Book');
 const Purchase = require('../model/Purchase');
 const { generateRatingPoints } = require('../utils/PointSystem');
+const { sendPaymentReceiptEmail } = require('../controllers/PaymentReceiptSending');
 
 // Route to send mails though contact us ...
 router.post('/send-feedback', async (req, res) => {
@@ -14,7 +15,7 @@ router.post('/send-feedback', async (req, res) => {
         const { email, name, message } = req.body;
         // Email the admin using the provided email, name, and message...
         sendFeedback(email, name, message);
-        return res.status(200).json({ message: 'Feedback sent successfully' });
+        return res.status(200).send('Feedback sent successfully');
     } catch (error) {
         return res.status(500).send(error.message);
     }
@@ -142,7 +143,7 @@ router.put('/user/profile/update/:name', upload.single('image'), async (req, res
             const lastSession = await SessionLog.findOne({ email: userEmail }).sort({ _id: -1 }).lean();
             if(lastSession) {
                 // Update the session data to newUserName ...
-                // Update the session with the new user name ...
+                // Update the session with the new username ...
                 await SessionLog.updateOne({ _id: lastSession._id }, { $set: { email: userEmail } });
                 return res.status(200).json({ message: "User data updated successfully", data: updatedUser });
             } else {
@@ -176,7 +177,6 @@ router.post('/user/book/addtocart', async (req, res) => {
         // Fetch the user data ...
         const userData = await User.findOne({ email: userEmail });
         const bookData = await Book.findOne({ name: bookName });
-        console.log(bookData);
         // Update the cart data ...
         userData.cart.push({ image: { path: bookData.image.path, name: bookData.image.name }, name: bookName, price: bookData.price, publishers: bookData.publishers });
         await userData.save();
@@ -274,7 +274,6 @@ router.put('/user/update/dob/age', async (req, res) => {
         const {userName, dob, age} = req.body;
         // Find user details related to the user and update data ...
         const user = await User.findOneAndUpdate({name: userName}, {dateOfBirth: dob, age: age}, {new: true});
-        console.log(user);
         if(!user) {
             res.status(404).send('User Not Found');
         } else {
@@ -358,6 +357,40 @@ router.post('/user/update-purchased-item', async (req, res) => {
                }
            }
            return res.status(200).send('Purchase Process Completed');
+       }
+   } catch (error) {
+       console.log(error.message);
+       return res.status(500).send(error.message);
+   }
+});
+
+router.post('/user/send/payment-receipt', async (req, res) => {
+   try {
+       const { email, orderId } = req.body;
+       // let purchasedItems = [];
+       let message = `related to orderId = ${orderId}`;
+       let totalPricePurchased = 0;
+       // get the relevant purchase details ...
+       const purchase = await Purchase.findById(orderId);
+       if(!purchase) {
+           return res.status(404).send('Purchase Not Found');
+       } else {
+           // check the email validity ...
+           const validUser = await User.findById(purchase.userId)
+           if(validUser.email != email) {
+               res.status(400).send('Email validation failed');
+           } else {
+               const items = purchase.items.details;
+               items.forEach(item => {
+                   // const paymentRelatedStr = `${item.name} - USD ${item.priceValue}`;
+                   totalPricePurchased = totalPricePurchased + item.priceValue;
+                   message = message + ` ${item.name} - USD ${item.priceValue}`;
+                   // purchasedItems.push(paymentRelatedStr);
+               });
+               // Call the function to send email ...
+               sendPaymentReceiptEmail(email, message, totalPricePurchased, orderId, purchase.purchasedBy);
+               res.status(200).send('Payment Receipt Email Sent to user Successfully');
+           }
        }
    } catch (error) {
        console.log(error.message);
